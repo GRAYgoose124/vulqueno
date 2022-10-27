@@ -17,8 +17,9 @@ use vulkano::sync::{self, FenceSignalFuture, GpuFuture, NowFuture};
 
 use crate::instancer::VulkanRuntime;
 
-pub(crate) fn run_compute_shader(
+pub fn execute_compute(
     shader_path: &str,
+    // Todo: buffers
     data_buffer: Arc<dyn BufferAccess>,
     runtime: &VulkanRuntime,
 ) -> FenceSignalFuture<CommandBufferExecFuture<NowFuture, PrimaryAutoCommandBuffer>> {
@@ -68,6 +69,7 @@ pub(crate) fn run_compute_shader(
         .dispatch([1024, 1, 1])
         .unwrap();
 
+    // Command buffer and execute it, returning a future.
     let command_buffer = builder.build().unwrap();
 
     sync::now(runtime.device.clone())
