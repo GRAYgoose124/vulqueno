@@ -1,32 +1,36 @@
-use vulkano::buffer::{BufferAccess, BufferUsage, CpuAccessibleBuffer};
+use std::fs::File;
+use std::io::Read;
+use std::sync::Arc;
+
+use vulkano::buffer::BufferAccess;
 use vulkano::pipeline::ComputePipeline;
 
-use vulkano::pipeline::Pipeline;
 use vulkano::descriptor_set::{PersistentDescriptorSet, WriteDescriptorSet};
+use vulkano::pipeline::Pipeline;
 
-use vulkano::command_buffer::{AutoCommandBufferBuilder, CommandBufferUsage, CommandBufferExecFuture, PrimaryAutoCommandBuffer};
+use vulkano::command_buffer::{
+    AutoCommandBufferBuilder, CommandBufferExecFuture, CommandBufferUsage, PrimaryAutoCommandBuffer,
+};
 use vulkano::pipeline::PipelineBindPoint;
-use vulkano::sync::{self, GpuFuture, NowFuture, FenceSignalFuture};
+use vulkano::shader::ShaderModule;
+use vulkano::sync::{self, FenceSignalFuture, GpuFuture, NowFuture};
 
 use crate::instancer::VulkanRuntime;
 
-
-pub(crate) fn create_shader_future(runtime: &VulkanRuntime) -> FenceSignalFuture<CommandBufferExecFuture<NowFuture, PrimaryAutoCommandBuffer>> {
-    let data_iter = 0..65536;
-    let data_buffer = CpuAccessibleBuffer::from_iter(
-        runtime.device.clone(),
-        BufferUsage {
-            storage_buffer: true,
-            ..Default::default()
-        },
-        false,
-        data_iter,
-    )
-    .expect("failed to create buffer");
-
+pub(crate) fn run_compute_shader(
+    shader_path: &str,
+    data_buffer: Arc<dyn BufferAccess>,
+    runtime: &VulkanRuntime,
+) -> FenceSignalFuture<CommandBufferExecFuture<NowFuture, PrimaryAutoCommandBuffer>> {
     // Loading shader source from macro.
-    let shader = cs::load(runtime.device.clone())
-    .expect("failed to create shader module");
+
+    let shader = {
+        let path = std::path::Path::new(shader_path);
+        let mut file = File::open(path).expect("Failed to open shader file");
+        let mut v = vec![];
+        file.read_to_end(&mut v).unwrap();
+        unsafe { ShaderModule::from_bytes(runtime.device.clone(), &v) }.unwrap()
+    };
 
     // Create compute pipeline from shader.
     let compute_pipeline = ComputePipeline::new(
@@ -67,26 +71,8 @@ pub(crate) fn create_shader_future(runtime: &VulkanRuntime) -> FenceSignalFuture
     let command_buffer = builder.build().unwrap();
 
     sync::now(runtime.device.clone())
-    .then_execute(runtime.queue.clone(), command_buffer)
-    .unwrap()
-    .then_signal_fence_and_flush()
-    .unwrap()
-}
-
-mod cs {
-    vulkano_shaders::shader!{
-        ty: "compute",
-        src: 
-"#version 450
-
-layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
-
-layout(set = 0, binding = 0) buffer Data {
-    uint data[];
-} buf;
-
-void main() {
-    uint idx = gl_GlobalInvocationID.x;
-    buf.data[idx] *= 12;
-}"  }
+        .then_execute(runtime.queue.clone(), command_buffer)
+        .unwrap()
+        .then_signal_fence_and_flush()
+        .unwrap()
 }

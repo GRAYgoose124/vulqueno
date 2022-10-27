@@ -3,14 +3,9 @@
 use std::sync::Arc;
 
 use vulkano::device::physical::PhysicalDevice;
-use vulkano::device::{Device, DeviceCreateInfo, Features, Queue, QueueCreateInfo};
+use vulkano::device::{Device, DeviceCreateInfo, Queue, QueueCreateInfo};
 use vulkano::instance::{Instance, InstanceCreateInfo};
-use vulkano::sync::{self, GpuFuture};
 use vulkano::VulkanLibrary;
-
-pub mod prelude {
-    use crate::instancer::VulkanRuntime;
-}
 
 #[derive(Clone)]
 pub struct VulkanRuntime {
