@@ -1,0 +1,15 @@
+[package]
+name = "vulkano-app"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bytemuck = "1.12.1"
+vulkano = "0.31.1"
+
+[features]
+default = ["vulkan_debug"]
+vulkan_debug = ["verbose_vulkan_creation"]
+verbose_vulkan_creation = []
