@@ -1,3 +1,5 @@
+// Based on the Vulkano book.
+// https://vulkano.rs/guide
 use std::sync::Arc;
 
 use vulkano::device::physical::PhysicalDevice;
@@ -10,6 +12,7 @@ pub mod prelude {
     use crate::instancer::VulkanRuntime;
 }
 
+#[derive(Clone)]
 pub struct VulkanRuntime {
     pub instance: Arc<Instance>,
     pub physical_device: Arc<PhysicalDevice>,
@@ -28,6 +31,12 @@ impl VulkanRuntime {
             device: dev,
             queue: q,
         }
+    }
+}
+
+impl Default for VulkanRuntime {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

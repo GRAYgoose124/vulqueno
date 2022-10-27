@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 bytemuck = "1.12.1"
 vulkano = "0.31.1"
+vulkano-shaders = "0.31.1"
 
 [features]
 default = ["vulkan_debug"]
