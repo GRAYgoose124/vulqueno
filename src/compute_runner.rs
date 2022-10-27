@@ -12,26 +12,14 @@ use vulkano::command_buffer::{
     AutoCommandBufferBuilder, CommandBufferExecFuture, CommandBufferUsage, PrimaryAutoCommandBuffer,
 };
 use vulkano::pipeline::PipelineBindPoint;
-use vulkano::shader::ShaderModule;
 use vulkano::sync::{self, FenceSignalFuture, GpuFuture, NowFuture};
 
-use crate::instancer::VulkanRuntime;
+use crate::runtime::VulkanRuntime;
+use crate::shader_utils::load_shader_module;
 
-pub fn execute_compute(
-    shader_path: &str,
-    // Todo: buffers
-    data_buffer: Arc<dyn BufferAccess>,
-    runtime: &VulkanRuntime,
-) -> FenceSignalFuture<CommandBufferExecFuture<NowFuture, PrimaryAutoCommandBuffer>> {
-    // Loading shader source from macro.
 
-    let shader = {
-        let path = std::path::Path::new(shader_path);
-        let mut file = File::open(path).expect("Failed to open shader file");
-        let mut v = vec![];
-        file.read_to_end(&mut v).unwrap();
-        unsafe { ShaderModule::from_bytes(runtime.device.clone(), &v) }.unwrap()
-    };
+fn init_compute_pipeline(runtime: &VulkanRuntime, data_buffer: Arc<dyn BufferAccess>, shader_path: &str) -> PrimaryAutoCommandBuffer {
+    let shader = load_shader_module(runtime, shader_path);
 
     // Create compute pipeline from shader.
     let compute_pipeline = ComputePipeline::new(
@@ -71,6 +59,16 @@ pub fn execute_compute(
 
     // Command buffer and execute it, returning a future.
     let command_buffer = builder.build().unwrap();
+    command_buffer
+}
+
+pub fn execute_compute(
+    shader_path: &str,
+    // Todo: buffers
+    data_buffer: Arc<dyn BufferAccess>,
+    runtime: &VulkanRuntime,
+) -> FenceSignalFuture<CommandBufferExecFuture<NowFuture, PrimaryAutoCommandBuffer>> {
+    let command_buffer = init_compute_pipeline(runtime, data_buffer, shader_path);
 
     sync::now(runtime.device.clone())
         .then_execute(runtime.queue.clone(), command_buffer)

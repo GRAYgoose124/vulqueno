@@ -1,7 +1,9 @@
 pub mod compute_runner;
-pub mod instancer;
+pub mod runtime;
+pub mod shader_utils;
 
 pub mod prelude {
     pub use crate::compute_runner::execute_compute;
-    pub use crate::instancer::VulkanRuntime;
+    pub use crate::runtime::VulkanRuntime;
+    pub use crate::shader_utils::load_shader_module;
 }

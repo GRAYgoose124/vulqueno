@@ -1,6 +1,7 @@
 // Based on the Vulkano book.
 // https://vulkano.rs/guide
 use std::sync::Arc;
+use std::fmt::{Debug, Formatter};
 
 use vulkano::device::physical::PhysicalDevice;
 use vulkano::device::{Device, DeviceCreateInfo, Queue, QueueCreateInfo};
@@ -35,11 +36,23 @@ impl Default for VulkanRuntime {
     }
 }
 
+impl Debug for VulkanRuntime {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("VulkanRuntime")
+            .field("instance", &self.instance)
+            .field("physical_device", &self.physical_device)
+            .field("device", &self.device)
+            .field("queue", &self.queue)
+            .finish()
+    }
+}
+
 fn init_vulkan_device() -> (Arc<Instance>, Arc<PhysicalDevice>) {
     let library = VulkanLibrary::new().expect("no local Vulkan library/DLL");
     let instance =
         Instance::new(library, InstanceCreateInfo::default()).expect("failed to create instance");
-
+    
+    #[cfg(feature = "verbose_vulkan_creation")]
     println!(
         "Vulkan Instance created, API Version: {:?}",
         instance.api_version()

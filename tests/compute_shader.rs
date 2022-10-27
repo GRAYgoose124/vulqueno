@@ -18,7 +18,7 @@ fn check_compute_shader() {
     )
     .expect("failed to create buffer");
 
-    let future = execute_compute("shaders/shader.spv", data_buffer.clone(), &runtime);
+    let future = execute_compute("shaders/basic_compute.spv", data_buffer.clone(), &runtime);
 
     future.wait(None).unwrap();
 
@@ -26,6 +26,4 @@ fn check_compute_shader() {
     for (n, val) in content.iter().enumerate() {
         assert_eq!(*val, n as u32 * 12);
     }
-
-    println!("Success!")
 }
