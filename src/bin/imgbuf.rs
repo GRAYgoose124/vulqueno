@@ -1,28 +1,18 @@
 use vulkano::buffer::{CpuAccessibleBuffer, BufferUsage};
 use vulkano::command_buffer::{AutoCommandBufferBuilder, ClearColorImageInfo, CommandBufferUsage, CopyImageToBufferInfo};
-use vulkano::image::{ImageDimensions, StorageImage, ImageAccess};
-use vulkano::format::{Format, ClearColorValue};
+
+use vulkano::image::{ImageDimensions, ImageAccess};
+use vulkano::format::{ClearColorValue};
 use vulkano::sync::{self, GpuFuture};
 
-use image::{ImageBuffer, Rgba};
+use vulqueno::imagebuffer::create_imagebuffer;
+use vulqueno::runtime::VulkanRuntime;
 
-use vulqueno::prelude::VulkanRuntime;
-
-// TODO: Refactor
 fn main() { 
     let runtime = VulkanRuntime::new();
-    
-    let dims = ImageDimensions::Dim2d { width: 2560, height: 1440, array_layers: 1 };
 
-    // Create image surface.
-    let image = StorageImage::new(
-        runtime.device.clone(),
-        dims,
-        Format::R8G8B8A8_UNORM,
-        
-        Some(runtime.queue.queue_family_index()),
-    )
-    .unwrap(); 
+    let dims = ImageDimensions::Dim2d { width: 2560, height: 1440, array_layers: 1 };
+    let image = create_imagebuffer(&runtime, dims);
 
     let mut builder = AutoCommandBufferBuilder::primary(
         runtime.device.clone(),
