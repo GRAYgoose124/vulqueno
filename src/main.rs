@@ -1,8 +1,19 @@
+use vulkano::buffer::{BufferAccess, BufferUsage, CpuAccessibleBuffer};
 
 mod instancer;
 
 fn main() {
-    let queue = instancer::get_device_queue();
+    let runtime = instancer::VulkanRuntime::new();
 
-    println!("Queue created, family index: {:?}",  queue.queue_family_index());
+    let data_iter = 0..65536;
+    let data_buffer = CpuAccessibleBuffer::from_iter(
+        runtime.device.clone(),
+        BufferUsage {
+            storage_buffer: true,
+            ..Default::default()
+        },
+        false,
+        data_iter,
+    )
+    .expect("failed to create buffer");
 }
